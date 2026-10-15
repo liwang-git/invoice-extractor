@@ -25,9 +25,15 @@ FIELDS = ["vendor", "invoice_number", "invoice_date", "total",
 
 
 def _normalise(field, value):
-    """Make values comparable. Money goes through Decimal, never raw floats."""
+    """Make values comparable. Money goes through Decimal, never raw floats.
+
+    vendor ignores letter case: invoices print names in capitals, and
+    capitalisation isn't what we're measuring. Everything else is exact.
+    """
     if field == "total" and value is not None:
         return Decimal(str(value))
+    if field == "vendor" and isinstance(value, str):
+        return value.strip().casefold()
     return value
 
 

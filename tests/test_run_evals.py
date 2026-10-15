@@ -34,3 +34,13 @@ def test_corrupted_stub_run_exits_one(monkeypatch, capsys):
     monkeypatch.setenv("STUB_CORRUPT", "1")
     assert run_evals.main() == 1
     assert "FAILED" in capsys.readouterr().out
+
+
+def test_vendor_ignores_case_but_other_text_fields_do_not():
+    base = {"vendor": "Mesa Wireless", "invoice_number": "ab-1",
+            "invoice_date": "2026-01-01", "total": 1.0,
+            "category": "Telecom", "needs_review": False}
+    shouted = {**base, "vendor": "MESA WIRELESS"}
+    assert run_evals.mismatched_fields(shouted, base) == []
+    assert run_evals.mismatched_fields({**base, "vendor": "Mesa Wireles"}, base) == ["vendor"]
+    assert run_evals.mismatched_fields({**base, "invoice_number": "AB-1"}, base) == ["invoice_number"]
