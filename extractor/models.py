@@ -32,7 +32,6 @@ Reply with ONLY a JSON object, no prose and no code fences, with exactly these k
   "invoice_date": string, YYYY-MM-DD
   "line_items": list of {"description": string, "amount": number}
   "tax": number (0 if none is stated)
-  "total": number, or null if the invoice states no total
 Copy amounts as written. Do not compute or correct anything, and do not invent an invoice number."""
 
 CATEGORY_PROMPT = ("You assign an expense category to an invoice. Reply with "
