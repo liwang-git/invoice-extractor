@@ -67,3 +67,68 @@ def test_unknown_model_setting_is_an_error(monkeypatch):
     monkeypatch.setenv("MODEL", "gpt-whatever")
     with pytest.raises(ValueError):
         get_model_fns()
+
+
+# --- Anthropic backend: always a fake client, never the paid API ---
+
+class FakeClient:
+    """Mimics client.messages.create(...) and records what it was given."""
+
+    def __init__(self, text="{}"):
+        self.calls = []
+        self.messages = self
+        self._text = text
+
+    def create(self, **kwargs):
+        self.calls.append(kwargs)
+        from types import SimpleNamespace as NS
+        return NS(content=[NS(text=self._text)],
+                  usage=NS(input_tokens=120, output_tokens=45))
+
+
+def test_call_anthropic_returns_text_tokens_and_latency():
+    from extractor.models import ANTHROPIC_MODEL, _call_anthropic
+    client = FakeClient('{"a": 1}')
+    result = _call_anthropic("sys prompt", "invoice body", client=client)
+    assert result["text"] == '{"a": 1}'
+    assert result["input_tokens"] == 120
+    assert result["output_tokens"] == 45
+    assert result["latency_s"] >= 0
+    call = client.calls[0]
+    assert call["model"] == ANTHROPIC_MODEL
+    assert call["system"] == "sys prompt"
+    assert call["messages"] == [{"role": "user", "content": "invoice body"}]
+
+
+def test_model_id_can_be_overridden(monkeypatch):
+    from extractor.models import _call_anthropic
+    monkeypatch.setenv("ANTHROPIC_MODEL", "some-other-model")
+    client = FakeClient()
+    _call_anthropic("s", "t", client=client)
+    assert client.calls[0]["model"] == "some-other-model"
+
+
+def test_anthropic_wrappers_return_text_only(monkeypatch):
+    import extractor.models as models
+    reply = {"text": "  Travel \n", "input_tokens": 1,
+             "output_tokens": 1, "latency_s": 0.0}
+    monkeypatch.setattr(models, "_call_anthropic",
+                        lambda system, text, client=None: reply)
+    assert models.anthropic_extract("x") == "  Travel \n"   # untouched
+    assert models.anthropic_categorize("x") == "Travel"      # stripped
+
+
+def test_model_setting_selects_anthropic_without_calling_it(monkeypatch):
+    import extractor.models as models
+    monkeypatch.setenv("MODEL", "anthropic")
+    extract_fn, categorize_fn = get_model_fns()
+    assert extract_fn is models.anthropic_extract
+    assert categorize_fn is models.anthropic_categorize
+
+
+def test_categories_copy_matches_build_script():
+    import re
+    import extractor.models as models
+    source = (Path(__file__).parent.parent / "scripts" / "build_case.py").read_text()
+    block = re.search(r"CATEGORIES = \[(.*?)\]", source, re.S).group(1)
+    assert re.findall(r'"([^"]+)"', block) == models.CATEGORIES
