@@ -4,7 +4,94 @@ Design rule: code decides, the model only reads. Every accept, reject or
 flag decision in the pipeline is made here, in plain Python.
 """
 
+import math
+import re
+from datetime import datetime
 from decimal import Decimal
+
+# The fields LLM step 1 must return. category comes later (LLM step 2), and
+# needs_review / review_reason are set by code, so none of those belong here.
+EXTRACT_KEYS = {"vendor", "invoice_number", "invoice_date",
+                "line_items", "tax", "total"}
+LINE_ITEM_KEYS = {"description", "amount"}
+DATE_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}")
+
+
+def _is_amount(value):
+    """True for a finite, non-negative JSON number.
+
+    bool is excluded on purpose: in Python, True is an int (True == 1).
+    Non-finite values are excluded because json.loads accepts NaN and Infinity.
+    """
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return False
+    return math.isfinite(value) and value >= 0
+
+
+def _is_text(value):
+    return isinstance(value, str) and value.strip() != ""
+
+
+def _check_keys(obj, expected, where):
+    problems = []
+    for key in sorted(expected - obj.keys()):
+        problems.append(f"{where}: missing key '{key}'")
+    for key in sorted(obj.keys() - expected):
+        problems.append(f"{where}: unexpected key '{key}'")
+    return problems
+
+
+def check_schema(data):
+    """Check the shape of the model's extraction output.
+
+    Returns a list of human-readable problems; an empty list means valid.
+    Collecting every problem (rather than stopping at the first) gives a
+    reviewer the full picture in one go.
+    """
+    if not isinstance(data, dict):
+        return [f"top level: expected an object, got {type(data).__name__}"]
+
+    problems = _check_keys(data, EXTRACT_KEYS, "top level")
+
+    for key in ("vendor", "invoice_number"):
+        if key in data and not _is_text(data[key]):
+            problems.append(f"{key}: expected a non-empty string")
+
+    if "invoice_date" in data:
+        date = data["invoice_date"]
+        # fullmatch for the exact shape, then strptime to reject 2026-02-30.
+        if not isinstance(date, str) or not DATE_PATTERN.fullmatch(date):
+            problems.append("invoice_date: expected YYYY-MM-DD")
+        else:
+            try:
+                datetime.strptime(date, "%Y-%m-%d")
+            except ValueError:
+                problems.append(f"invoice_date: {date} is not a real date")
+
+    if "line_items" in data:
+        items = data["line_items"]
+        if not isinstance(items, list) or not items:
+            problems.append("line_items: expected a non-empty list")
+        else:
+            for i, item in enumerate(items):
+                where = f"line_items[{i}]"
+                if not isinstance(item, dict):
+                    problems.append(f"{where}: expected an object")
+                    continue
+                problems += _check_keys(item, LINE_ITEM_KEYS, where)
+                if "description" in item and not _is_text(item["description"]):
+                    problems.append(f"{where}.description: expected a non-empty string")
+                if "amount" in item and not _is_amount(item["amount"]):
+                    problems.append(f"{where}.amount: expected a non-negative number")
+
+    if "tax" in data and not _is_amount(data["tax"]):
+        problems.append("tax: expected a non-negative number")
+
+    # total is the one field allowed to be null: "this invoice states no total".
+    if "total" in data and data["total"] is not None and not _is_amount(data["total"]):
+        problems.append("total: expected a non-negative number or null")
+
+    return problems
 
 
 def _money(value):
