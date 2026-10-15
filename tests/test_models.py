@@ -82,7 +82,8 @@ class FakeClient:
     def create(self, **kwargs):
         self.calls.append(kwargs)
         from types import SimpleNamespace as NS
-        return NS(content=[NS(text=self._text)],
+        return NS(content=[NS(type="thinking", thinking="hmm"),
+                           NS(type="text", text=self._text)],
                   usage=NS(input_tokens=120, output_tokens=45))
 
 

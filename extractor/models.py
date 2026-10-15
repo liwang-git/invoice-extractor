@@ -120,7 +120,8 @@ def _call_anthropic(system, invoice_text, client=None):
         messages=[{"role": "user", "content": invoice_text}],
     )
     return {
-        "text": response.content[0].text,
+        # The reply can start with a thinking block; keep only text blocks.
+        "text": "".join(b.text for b in response.content if b.type == "text"),
         "input_tokens": response.usage.input_tokens,
         "output_tokens": response.usage.output_tokens,
         "latency_s": time.perf_counter() - started,
