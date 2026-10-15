@@ -102,12 +102,13 @@ def stub_categorize(invoice_text, corrupt=0.0):
     return _rng(invoice_text, "category-pick").choice(others)
 
 
-def _call_anthropic(system, invoice_text, client=None):
+def _call_anthropic(system, invoice_text, client=None, on_usage=None):
     """Make one Anthropic API call. The only function that touches the SDK.
 
     Returns the reply text plus what Session 4's cost log needs: token counts
     and wall-clock latency. `client` is injectable so tests use a fake and
-    never reach the paid API.
+    never reach the paid API. `on_usage`, if given, is called with
+    {"input_tokens", "output_tokens"} so a caller can add up what it was billed.
     """
     if client is None:
         # Imported here so the stub path (and pytest) works without these
@@ -125,6 +126,9 @@ def _call_anthropic(system, invoice_text, client=None):
         system=system,
         messages=[{"role": "user", "content": invoice_text}],
     )
+    if on_usage is not None:
+        on_usage({"input_tokens": response.usage.input_tokens,
+                  "output_tokens": response.usage.output_tokens})
     return {
         # The reply can start with a thinking block; keep only text blocks.
         "text": "".join(b.text for b in response.content if b.type == "text"),
@@ -134,19 +138,20 @@ def _call_anthropic(system, invoice_text, client=None):
     }
 
 
-def anthropic_extract(invoice_text):
+def anthropic_extract(invoice_text, on_usage=None):
     """LLM step 1 via the Anthropic API. Same signature as stub_extract.
 
     Returns the raw reply text, unmodified: if the model adds fences or prose,
     process() sees invalid JSON and applies its retry/flag rules.
     """
-    return _call_anthropic(EXTRACT_PROMPT, invoice_text)["text"]
+    return _call_anthropic(EXTRACT_PROMPT, invoice_text, on_usage=on_usage)["text"]
 
 
-def anthropic_categorize(invoice_text):
+def anthropic_categorize(invoice_text, on_usage=None):
     """LLM step 2 via the Anthropic API. Not validated against CATEGORIES:
     a wrong or invented category simply scores as wrong in the eval."""
-    return _call_anthropic(CATEGORY_PROMPT, invoice_text)["text"].strip()
+    reply = _call_anthropic(CATEGORY_PROMPT, invoice_text, on_usage=on_usage)
+    return reply["text"].strip()
 
 
 def bedrock_extract(invoice_text):
@@ -162,11 +167,20 @@ def bedrock_categorize(invoice_text):
     )
 
 
-def get_model_fns():
+def current_model_id():
+    """The model name to put in logs and to look up prices by."""
+    model = os.environ.get("MODEL", "stub")
+    if model == "anthropic":
+        return os.environ.get("ANTHROPIC_MODEL", ANTHROPIC_MODEL)
+    return model
+
+
+def get_model_fns(on_usage=None):
     """Pick (extract_fn, categorize_fn) from the MODEL setting.
 
     MODEL is the one place the model choice lives. STUB_CORRUPT (0..1) only
-    affects the stub.
+    affects the stub. `on_usage` receives each real API call's token counts;
+    the stub makes no API calls, so it never calls it.
     """
     model = os.environ.get("MODEL", "stub")
     if model == "stub":
@@ -174,7 +188,8 @@ def get_model_fns():
         return (partial(stub_extract, corrupt=corrupt),
                 partial(stub_categorize, corrupt=corrupt))
     if model == "anthropic":
-        return anthropic_extract, anthropic_categorize
+        return (partial(anthropic_extract, on_usage=on_usage),
+                partial(anthropic_categorize, on_usage=on_usage))
     if model == "bedrock":
         return bedrock_extract, bedrock_categorize
     raise ValueError(

@@ -115,7 +115,7 @@ def test_anthropic_wrappers_return_text_only(monkeypatch):
     reply = {"text": "  Travel \n", "input_tokens": 1,
              "output_tokens": 1, "latency_s": 0.0}
     monkeypatch.setattr(models, "_call_anthropic",
-                        lambda system, text, client=None: reply)
+                        lambda system, text, client=None, on_usage=None: reply)
     assert models.anthropic_extract("x") == "  Travel \n"   # untouched
     assert models.anthropic_categorize("x") == "Travel"      # stripped
 
@@ -124,8 +124,8 @@ def test_model_setting_selects_anthropic_without_calling_it(monkeypatch):
     import extractor.models as models
     monkeypatch.setenv("MODEL", "anthropic")
     extract_fn, categorize_fn = get_model_fns()
-    assert extract_fn is models.anthropic_extract
-    assert categorize_fn is models.anthropic_categorize
+    assert extract_fn.func is models.anthropic_extract
+    assert categorize_fn.func is models.anthropic_categorize
 
 
 def test_categories_copy_matches_build_script():
@@ -134,3 +134,21 @@ def test_categories_copy_matches_build_script():
     source = (Path(__file__).parent.parent / "scripts" / "build_case.py").read_text()
     block = re.search(r"CATEGORIES = \[(.*?)\]", source, re.S).group(1)
     assert re.findall(r'"([^"]+)"', block) == models.CATEGORIES
+
+
+def test_on_usage_receives_token_counts_from_each_call():
+    from extractor.models import _call_anthropic
+    seen = []
+    _call_anthropic("s", "t", client=FakeClient(), on_usage=seen.append)
+    assert seen == [{"input_tokens": 120, "output_tokens": 45}]
+
+
+def test_current_model_id(monkeypatch):
+    from extractor.models import ANTHROPIC_MODEL, current_model_id
+    monkeypatch.delenv("MODEL", raising=False)
+    assert current_model_id() == "stub"
+    monkeypatch.setenv("MODEL", "anthropic")
+    monkeypatch.delenv("ANTHROPIC_MODEL", raising=False)
+    assert current_model_id() == ANTHROPIC_MODEL
+    monkeypatch.setenv("ANTHROPIC_MODEL", "other-model")
+    assert current_model_id() == "other-model"
