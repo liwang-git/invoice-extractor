@@ -1,0 +1,9 @@
+Lakeline Fiber Internet
+Invoice LF-90412
+Billing date: 2026-10-05
+
+Business fiber 500 Mbps (Oct)            129.00
+Static IP block                           15.00
+Service credit - outage 10/03            -12.90
+
+Amount due                               131.10

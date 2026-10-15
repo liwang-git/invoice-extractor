@@ -1,0 +1,20 @@
+{
+  "vendor": "Brightside Brand Studio",
+  "invoice_number": "BB-3095",
+  "invoice_date": "2026-10-14",
+  "line_items": [
+    {
+      "description": "Brand identity design",
+      "amount": 600.0
+    },
+    {
+      "description": "Social media template pack",
+      "amount": 175.0
+    }
+  ],
+  "tax": 0.0,
+  "total": 775.0,
+  "category": "Professional Services",
+  "needs_review": false,
+  "review_reason": null
+}

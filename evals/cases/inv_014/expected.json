@@ -1,0 +1,20 @@
+{
+  "vendor": "Hartwell & Boyd Consulting",
+  "invoice_number": "HB-2026-0147",
+  "invoice_date": "2026-10-08",
+  "line_items": [
+    {
+      "description": "Process improvement workshop - facilitation, preparation and follow-up report (2 days)",
+      "amount": 3200.0
+    },
+    {
+      "description": "Travel expenses (reimbursable)",
+      "amount": 412.6
+    }
+  ],
+  "tax": 0.0,
+  "total": 3612.6,
+  "category": "Professional Services",
+  "needs_review": false,
+  "review_reason": null
+}

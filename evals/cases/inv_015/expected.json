@@ -1,0 +1,20 @@
+{
+  "vendor": "Papierhaus Berlin GmbH",
+  "invoice_number": "PH-2026-3381",
+  "invoice_date": "2026-10-12",
+  "line_items": [
+    {
+      "description": "Kopierpapier A4 (20 Pakete)",
+      "amount": 1152.0
+    },
+    {
+      "description": "Ordner (12 Stueck)",
+      "amount": 48.0
+    }
+  ],
+  "tax": 228.0,
+  "total": 1428.0,
+  "category": "Office Supplies",
+  "needs_review": false,
+  "review_reason": null
+}

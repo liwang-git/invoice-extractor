@@ -1,0 +1,24 @@
+{
+  "vendor": "Lakeline Fiber Internet",
+  "invoice_number": "LF-90412",
+  "invoice_date": "2026-10-05",
+  "line_items": [
+    {
+      "description": "Business fiber 500 Mbps (Oct)",
+      "amount": 129.0
+    },
+    {
+      "description": "Static IP block",
+      "amount": 15.0
+    },
+    {
+      "description": "Service credit - outage 10/03",
+      "amount": -12.9
+    }
+  ],
+  "tax": 0.0,
+  "total": 131.1,
+  "category": "Telecom",
+  "needs_review": false,
+  "review_reason": null
+}

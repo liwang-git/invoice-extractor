@@ -1,0 +1,20 @@
+{
+  "vendor": "Alamo City Hotel Group",
+  "invoice_number": "AC-558201",
+  "invoice_date": "2026-10-10",
+  "line_items": [
+    {
+      "description": "Room, 3 nights @ 189.00",
+      "amount": 567.0
+    },
+    {
+      "description": "Parking, 3 nights @ 25.00",
+      "amount": 75.0
+    }
+  ],
+  "tax": 96.3,
+  "total": 738.3,
+  "category": "Travel",
+  "needs_review": false,
+  "review_reason": null
+}

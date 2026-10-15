@@ -1,0 +1,10 @@
+Summit Analytics Software
+Invoice SA-20417
+Invoice date: 2026-10-02
+
+Platform subscription (annual)         1,800.00
+Extra seats x 4                          200.00
+
+Invoice total                          2,000.00
+Less: prepayment received 08/15         (500.00)
+BALANCE DUE                            1,500.00

@@ -1,0 +1,20 @@
+{
+  "vendor": "Summit Analytics Software",
+  "invoice_number": "SA-20417",
+  "invoice_date": "2026-10-02",
+  "line_items": [
+    {
+      "description": "Platform subscription (annual)",
+      "amount": 1800.0
+    },
+    {
+      "description": "Extra seats x 4",
+      "amount": 200.0
+    }
+  ],
+  "tax": 0.0,
+  "total": 2000.0,
+  "category": "Software & SaaS",
+  "needs_review": false,
+  "review_reason": null
+}

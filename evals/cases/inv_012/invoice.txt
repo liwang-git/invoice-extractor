@@ -1,0 +1,13 @@
+ALAMO CITY HOTEL GROUP
+Folio / Invoice AC-558201
+
+Guest stay:        2026-10-06 to 2026-10-09
+Reservation made:  2026-08-30
+Issued:            2026-10-10
+Payment due:       2026-11-09
+
+Room, 3 nights @ 189.00                  567.00
+Parking, 3 nights @ 25.00                 75.00
+Occupancy tax (15%)                       96.30
+
+Total                                    738.30
