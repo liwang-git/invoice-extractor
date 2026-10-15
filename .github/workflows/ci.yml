@@ -1,0 +1,130 @@
+# Two gates, because there are two kinds of regression:
+#   code   - tests + the eval set against the stub model. Free, deterministic;
+#            catches broken validators, runner or pipeline logic.
+#   model  - the eval set against the real model. Costs a few cents; catches
+#            prompt edits and model swaps that hurt accuracy. Runs only when
+#            something that can change model quality changed.
+# For either to block a merge, mark its check "required" in branch protection.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: "Anthropic model ID to evaluate (blank = the code default)"
+        required: false
+
+permissions:
+  contents: read
+
+# A newer push to the same branch supersedes the older run (and its spend).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  code:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - run: pip install -r requirements.txt -r requirements-dev.txt
+      - run: pytest -q
+      - name: Eval set against the stub (must be exactly 100%)
+        env:
+          MODEL: stub
+          EVAL_THRESHOLD: "100"
+        run: python run_evals.py
+
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      model: ${{ steps.detect.outputs.model }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Did anything that can change model quality change?
+        id: detect
+        shell: bash
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.sha }}
+        run: |
+          # Prompts live in extractor/, so that and the eval data count.
+          PATTERN='^(extractor/|evals/|scripts/build_case\.py|run_evals\.py|requirements\.txt|\.github/workflows/ci\.yml)'
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            run=true
+          elif [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ]; then
+            run=true   # no base to diff against (e.g. first push): be safe
+          else
+            echo "Changed files:"; git diff --name-only "$BASE" "$HEAD"
+            if git diff --name-only "$BASE" "$HEAD" | grep -Eq "$PATTERN"; then
+              run=true
+            else
+              run=false
+            fi
+          fi
+          echo "Run the model eval: $run"
+          echo "model=$run" >> "$GITHUB_OUTPUT"
+
+  model:
+    # Spend money only if the cheap gate passed and the change is relevant.
+    # Skipped (not failed) counts as success for required checks. Fork PRs get
+    # no secrets, so they are skipped too.
+    needs: [code, changes]
+    if: >-
+      needs.changes.outputs.model == 'true' &&
+      (github.event_name != 'pull_request' ||
+       github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - run: pip install -r requirements.txt
+      - name: Eval set against the real model (must be at least 95%)
+        shell: bash   # bash with pipefail, so a failing eval fails the step
+        env:
+          MODEL: anthropic
+          EVAL_THRESHOLD: "95"
+          ANTHROPIC_MODEL: ${{ inputs.model }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::error::ANTHROPIC_API_KEY secret is not set for this repository"
+            exit 1
+          fi
+          # A blank dispatch input arrives as an empty string; use the default.
+          if [ -z "$ANTHROPIC_MODEL" ]; then unset ANTHROPIC_MODEL; fi
+          python run_evals.py | tee eval-output.txt
+      - name: Show the numbers on the run page
+        if: always()
+        run: |
+          {
+            echo '### Model eval'
+            echo '```'
+            cat eval-output.txt 2>/dev/null || echo "no output"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Keep the per-case log
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: eval-run-log
+          path: runs/*.jsonl
+          if-no-files-found: warn
