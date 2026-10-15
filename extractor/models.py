@@ -40,6 +40,10 @@ CATEGORY_PROMPT = ("You assign an expense category to an invoice. Reply with "
                    + "\n".join(CATEGORIES))
 
 
+class UnknownInvoice(KeyError):
+    """The stub was given text that isn't one of the eval invoices."""
+
+
 def _load_cases():
     """Map invoice text -> expected.json for every eval case."""
     cases = {}
@@ -53,7 +57,9 @@ def _expected_for(invoice_text):
     try:
         return _load_cases()[invoice_text]
     except KeyError:
-        raise KeyError("stub model only knows the invoices in evals/cases") from None
+        raise UnknownInvoice(
+            "the stub model only knows the invoices in evals/cases; "
+            "set MODEL=anthropic to process other text") from None
 
 
 def _rng(invoice_text, salt):
