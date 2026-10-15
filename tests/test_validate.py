@@ -85,10 +85,22 @@ def test_check_schema_checks_inside_line_items():
         "Priority support",
     ]
     assert check_schema(data) == [
-        "line_items[0].amount: expected a non-negative number",
+        "line_items[0].amount: expected a number",
         "line_items[1]: missing key 'description'",
         "line_items[2]: expected an object",
     ]
+
+
+def test_check_schema_allows_negative_line_item_amount():
+    data = valid_extraction()
+    data["line_items"].append({"description": "Loyalty credit", "amount": -25.0})
+    assert check_schema(data) == []
+
+
+def test_check_schema_still_rejects_negative_tax():
+    data = valid_extraction()
+    data["tax"] = -1.0
+    assert check_schema(data) == ["tax: expected a non-negative number"]
 
 
 # --- check_totals ---------------------------------------------------------

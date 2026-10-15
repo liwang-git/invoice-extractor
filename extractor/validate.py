@@ -18,15 +18,20 @@ LINE_ITEM_KEYS = {"description", "amount"}
 DATE_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}")
 
 
-def _is_amount(value):
-    """True for a finite, non-negative JSON number.
+def _is_number(value):
+    """True for a finite JSON number of either sign.
 
     bool is excluded on purpose: in Python, True is an int (True == 1).
     Non-finite values are excluded because json.loads accepts NaN and Infinity.
     """
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return False
-    return math.isfinite(value) and value >= 0
+    return math.isfinite(value)
+
+
+def _is_amount(value):
+    """True for a finite, non-negative JSON number (tax and total)."""
+    return _is_number(value) and value >= 0
 
 
 def _is_text(value):
@@ -82,8 +87,10 @@ def check_schema(data):
                 problems += _check_keys(item, LINE_ITEM_KEYS, where)
                 if "description" in item and not _is_text(item["description"]):
                     problems.append(f"{where}.description: expected a non-empty string")
-                if "amount" in item and not _is_amount(item["amount"]):
-                    problems.append(f"{where}.amount: expected a non-negative number")
+                # Negative is allowed here: credits and discounts are normal
+                # line items. tax and total below stay non-negative.
+                if "amount" in item and not _is_number(item["amount"]):
+                    problems.append(f"{where}.amount: expected a number")
 
     if "tax" in data and not _is_amount(data["tax"]):
         problems.append("tax: expected a non-negative number")
