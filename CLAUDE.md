@@ -18,7 +18,8 @@ Design rule: **code decides, the model only reads.** Every accept, reject or fla
 - Intel MacBook Pro (x86_64), macOS Sequoia. No Homebrew; tools were installed from official installers.
 - Python virtual environment at `.venv`. Use `python` and `pip` only inside it.
 - Tests run with `pytest`.
-- Bedrock calls are **blocked at the AWS account level** while a support case is open. Until that's resolved, all model calls go through a stub. Do not try to call Bedrock unless asked.
+- Bedrock calls are **blocked at the AWS account level** while a support case is open. Do not try to call Bedrock unless asked. `bedrock_extract` is still a placeholder to come.
+- Model backends, chosen by the `MODEL` environment variable: `stub` (default; free, used by pytest and CI), `anthropic` (interim real backend via the Anthropic API, model ID set once in `extractor/models.py`), `bedrock` (not implemented yet). The Anthropic key is `ANTHROPIC_API_KEY` in the git-ignored `.env`. Tests must never call the paid API.
 
 ## Layout
 
