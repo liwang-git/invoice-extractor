@@ -23,8 +23,8 @@ from decimal import Decimal
 from pathlib import Path
 
 from extractor.models import current_model_id, get_model_fns
+from extractor.pipeline import run_pipeline
 from extractor.pricing import estimate_cost
-from extractor.validate import process
 
 CASES_DIR = Path(__file__).resolve().parent / "evals" / "cases"
 FIELDS = ["vendor", "invoice_number", "invoice_date", "line_items", "tax",
@@ -71,10 +71,7 @@ def mismatched_fields(actual, expected):
 def run_case(case_dir, extract_fn, categorize_fn):
     text = (case_dir / "invoice.txt").read_text()
     expected = json.loads((case_dir / "expected.json").read_text())
-    result = process(text, extract_fn)
-    # LLM step 2. Skipped for flagged-invalid output: nothing to categorise.
-    if result["review_reason"] != "invalid_output":
-        result["category"] = categorize_fn(text)
+    result = run_pipeline(text, extract_fn, categorize_fn)
     return mismatched_fields(result, expected)
 
 

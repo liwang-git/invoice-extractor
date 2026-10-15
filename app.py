@@ -15,7 +15,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 from extractor.models import UnknownInvoice, get_model_fns
-from extractor.validate import process
+from extractor.pipeline import run_pipeline
 
 app = FastAPI(title="invoice-extractor")
 
@@ -31,10 +31,7 @@ def extract(request: ExtractRequest):
     # Which model runs is decided by the MODEL setting, same as run_evals.py.
     extract_fn, categorize_fn = get_model_fns()
     try:
-        result = process(request.text, extract_fn)
-        # LLM step 2, skipped when step 1's output was flagged invalid.
-        if result["review_reason"] != "invalid_output":
-            result["category"] = categorize_fn(request.text)
+        result = run_pipeline(request.text, extract_fn, categorize_fn)
     except UnknownInvoice as err:
         raise HTTPException(status_code=400, detail=err.args[0])
     except NotImplementedError as err:
