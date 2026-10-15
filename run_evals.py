@@ -20,20 +20,29 @@ from extractor.models import get_model_fns
 from extractor.validate import process
 
 CASES_DIR = Path(__file__).resolve().parent / "evals" / "cases"
-FIELDS = ["vendor", "invoice_number", "invoice_date", "total",
-          "category", "needs_review"]
+FIELDS = ["vendor", "invoice_number", "invoice_date", "line_items", "tax",
+          "total", "category", "needs_review", "review_reason"]
+
+
+def _text(value):
+    """Ignore letter case and stray whitespace, nothing else."""
+    return " ".join(value.split()).casefold()
 
 
 def _normalise(field, value):
     """Make values comparable. Money goes through Decimal, never raw floats.
 
-    vendor ignores letter case: invoices print names in capitals, and
-    capitalisation isn't what we're measuring. Everything else is exact.
+    vendor and line-item descriptions ignore letter case and spacing:
+    invoices print them in varying styles and that isn't what we're
+    measuring. Everything else is exact. Line items stay in order.
     """
-    if field == "total" and value is not None:
+    if field in ("tax", "total") and value is not None:
         return Decimal(str(value))
     if field == "vendor" and isinstance(value, str):
-        return value.strip().casefold()
+        return _text(value)
+    if field == "line_items":
+        return [(_text(item["description"]), Decimal(str(item["amount"])))
+                for item in value]
     return value
 
 

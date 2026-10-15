@@ -83,6 +83,10 @@ def stub_extract(invoice_text, corrupt=0.0):
     if rng.random() < corrupt:
         # Also makes the totals check disagree: corruption ripples downstream.
         data["total"] = 1.0 if data["total"] is None else data["total"] + 1.0
+    if rng.random() < corrupt:
+        data["line_items"][0]["amount"] += 1.0
+    if rng.random() < corrupt:
+        data["tax"] += 0.5
 
     return json.dumps(data)
 

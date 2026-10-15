@@ -36,7 +36,8 @@ def test_full_corruption_changes_every_field_but_stays_schema_valid():
     text, expected = load(CASE_DIRS[0])
     data = json.loads(stub_extract(text, corrupt=1.0))
     assert check_schema(data) == []
-    for field in ("vendor", "invoice_number", "invoice_date", "total"):
+    for field in ("vendor", "invoice_number", "invoice_date", "total",
+                  "tax", "line_items"):
         assert data[field] != expected[field]
     assert stub_categorize(text, corrupt=1.0) != expected["category"]
 
