@@ -306,6 +306,97 @@ Total                                    775.00
      ("Social media template pack", D("175.00"))],
     D("0"), D("775.00"), "Professional Services")
 
+# --- More messy cases ---
+
+# Two currencies: one line billed in EUR with a USD conversion column.
+# Expected amounts are the billing-currency (USD) column, which is what sums.
+case("inv_017", """
+PACIFIC RIM TRAVEL DESK
+Invoice PRT-20714        Issued 2026-10-12
+
+Description                    Orig. amount        USD
+Airfare SFO-FRA-SFO                    -       1,240.00
+Hotel Frankfurt, 3 nights      EUR 540.00        583.20
+Ground transport                       -          96.80
+
+Rate applied: EUR 1 = USD 1.0800
+Total (USD)                                    1,920.00
+""", "Pacific Rim Travel Desk", "PRT-20714", "2026-10-12",
+    [("Airfare SFO-FRA-SFO", D("1240.00")),
+     ("Hotel Frankfurt, 3 nights", D("583.20")),
+     ("Ground transport", D("96.80"))],
+    D("0"), D("1920.00"), "Travel")
+
+# A credit written in accounting style: parentheses and "CR", between
+# taxable lines, with tax charged on the net.
+case("inv_018", """
+Lone Oak Stationers
+Invoice # LO-30977
+Date 2026-10-13
+
+Standing desk organizers (4)           120.00
+Whiteboard markers, 12-pack             60.00
+Return: damaged stapler (1)            (45.00) CR
+
+Net goods                              135.00
+Sales tax 8%                            10.80
+Amount due                             145.80
+""", "Lone Oak Stationers", "LO-30977", "2026-10-13",
+    [("Standing desk organizers (4)", D("120.00")),
+     ("Whiteboard markers, 12-pack", D("60.00")),
+     ("Return: damaged stapler (1)", D("-45.00"))],
+    D("10.80"), D("145.80"), "Office Supplies")
+
+# A total that includes a discount shown in the footer, not the item list.
+# Expected: the discount is a negative line item, so items + tax == total.
+case("inv_019", """
+Summit HVAC Maintenance
+Invoice SHM-5521
+Invoice Date: 2026-10-17
+
+Quarterly HVAC service contract (Q4)     1,000.00
+Filter replacement, 3 sites                400.00
+
+Subtotal                                 1,400.00
+Multi-site discount (10%)                 -140.00
+TOTAL DUE                                1,260.00
+""", "Summit HVAC Maintenance", "SHM-5521", "2026-10-17",
+    [("Quarterly HVAC service contract (Q4)", D("1000.00")),
+     ("Filter replacement, 3 sites", D("400.00")),
+     ("Multi-site discount (10%)", D("-140.00"))],
+    D("0"), D("1260.00"), "Facilities & Utilities")
+
+# Multi-page-style layout: repeated headers, page footers, a carried-forward
+# subtotal (not a line item) and the real total only on the last page.
+case("inv_020", """
+CORVUS STRATEGY PARTNERS
+Invoice CSP-0922                         Page 1 of 2
+Invoice date: 2026-10-16
+
+Consulting - discovery phase             2,400.00
+Consulting - design phase                3,600.00
+Workshop materials                         275.50
+
+Subtotal carried forward                 6,275.50
+-------------- continued on next page --------------
+
+CORVUS STRATEGY PARTNERS
+Invoice CSP-0922                         Page 2 of 2
+Brought forward                          6,275.50
+
+Consulting - build phase                 5,200.00
+Project management fee                     800.00
+
+TOTAL                                   12,275.50
+Corvus Strategy Partners - Confidential
+""", "Corvus Strategy Partners", "CSP-0922", "2026-10-16",
+    [("Consulting - discovery phase", D("2400.00")),
+     ("Consulting - design phase", D("3600.00")),
+     ("Workshop materials", D("275.50")),
+     ("Consulting - build phase", D("5200.00")),
+     ("Project management fee", D("800.00"))],
+    D("0"), D("12275.50"), "Professional Services")
+
 out = "evals/cases"
 for cid, text, exp in cases:
     d = os.path.join(out, cid)

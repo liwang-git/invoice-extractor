@@ -1,0 +1,24 @@
+{
+  "vendor": "Lone Oak Stationers",
+  "invoice_number": "LO-30977",
+  "invoice_date": "2026-10-13",
+  "line_items": [
+    {
+      "description": "Standing desk organizers (4)",
+      "amount": 120.0
+    },
+    {
+      "description": "Whiteboard markers, 12-pack",
+      "amount": 60.0
+    },
+    {
+      "description": "Return: damaged stapler (1)",
+      "amount": -45.0
+    }
+  ],
+  "tax": 10.8,
+  "total": 145.8,
+  "category": "Office Supplies",
+  "needs_review": false,
+  "review_reason": null
+}

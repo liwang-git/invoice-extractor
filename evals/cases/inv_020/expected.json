@@ -1,0 +1,32 @@
+{
+  "vendor": "Corvus Strategy Partners",
+  "invoice_number": "CSP-0922",
+  "invoice_date": "2026-10-16",
+  "line_items": [
+    {
+      "description": "Consulting - discovery phase",
+      "amount": 2400.0
+    },
+    {
+      "description": "Consulting - design phase",
+      "amount": 3600.0
+    },
+    {
+      "description": "Workshop materials",
+      "amount": 275.5
+    },
+    {
+      "description": "Consulting - build phase",
+      "amount": 5200.0
+    },
+    {
+      "description": "Project management fee",
+      "amount": 800.0
+    }
+  ],
+  "tax": 0.0,
+  "total": 12275.5,
+  "category": "Professional Services",
+  "needs_review": false,
+  "review_reason": null
+}

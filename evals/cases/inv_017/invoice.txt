@@ -1,0 +1,10 @@
+PACIFIC RIM TRAVEL DESK
+Invoice PRT-20714        Issued 2026-10-12
+
+Description                    Orig. amount        USD
+Airfare SFO-FRA-SFO                    -       1,240.00
+Hotel Frankfurt, 3 nights      EUR 540.00        583.20
+Ground transport                       -          96.80
+
+Rate applied: EUR 1 = USD 1.0800
+Total (USD)                                    1,920.00

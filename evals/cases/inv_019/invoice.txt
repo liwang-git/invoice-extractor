@@ -1,0 +1,10 @@
+Summit HVAC Maintenance
+Invoice SHM-5521
+Invoice Date: 2026-10-17
+
+Quarterly HVAC service contract (Q4)     1,000.00
+Filter replacement, 3 sites                400.00
+
+Subtotal                                 1,400.00
+Multi-site discount (10%)                 -140.00
+TOTAL DUE                                1,260.00

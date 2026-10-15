@@ -1,0 +1,24 @@
+{
+  "vendor": "Pacific Rim Travel Desk",
+  "invoice_number": "PRT-20714",
+  "invoice_date": "2026-10-12",
+  "line_items": [
+    {
+      "description": "Airfare SFO-FRA-SFO",
+      "amount": 1240.0
+    },
+    {
+      "description": "Hotel Frankfurt, 3 nights",
+      "amount": 583.2
+    },
+    {
+      "description": "Ground transport",
+      "amount": 96.8
+    }
+  ],
+  "tax": 0.0,
+  "total": 1920.0,
+  "category": "Travel",
+  "needs_review": false,
+  "review_reason": null
+}

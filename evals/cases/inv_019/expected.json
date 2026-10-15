@@ -1,0 +1,24 @@
+{
+  "vendor": "Summit HVAC Maintenance",
+  "invoice_number": "SHM-5521",
+  "invoice_date": "2026-10-17",
+  "line_items": [
+    {
+      "description": "Quarterly HVAC service contract (Q4)",
+      "amount": 1000.0
+    },
+    {
+      "description": "Filter replacement, 3 sites",
+      "amount": 400.0
+    },
+    {
+      "description": "Multi-site discount (10%)",
+      "amount": -140.0
+    }
+  ],
+  "tax": 0.0,
+  "total": 1260.0,
+  "category": "Facilities & Utilities",
+  "needs_review": false,
+  "review_reason": null
+}
