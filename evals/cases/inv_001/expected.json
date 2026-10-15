@@ -1,0 +1,24 @@
+{
+  "vendor": "Northwind Cloud Hosting",
+  "invoice_number": "NCH-20931",
+  "invoice_date": "2026-09-01",
+  "line_items": [
+    {
+      "description": "Compute plan - Standard (Sep)",
+      "amount": 420.0
+    },
+    {
+      "description": "Block storage 500 GB",
+      "amount": 85.5
+    },
+    {
+      "description": "Priority support",
+      "amount": 120.0
+    }
+  ],
+  "tax": 0.0,
+  "total": 625.5,
+  "category": "Software & SaaS",
+  "needs_review": false,
+  "review_reason": null
+}

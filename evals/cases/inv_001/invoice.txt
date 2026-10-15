@@ -1,0 +1,15 @@
+NORTHWIND CLOUD HOSTING
+1200 Harbor Way, Suite 400, Seattle WA 98101
+
+INVOICE
+Invoice #: NCH-20931
+Invoice Date: 2026-09-01
+Bill To: Li Wang, Austin TX
+
+Description                         Amount
+Compute plan - Standard (Sep)       $420.00
+Block storage 500 GB                 $85.50
+Priority support                    $120.00
+
+TOTAL DUE                           $625.50
+Payment terms: Net 30

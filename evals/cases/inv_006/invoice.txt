@@ -1,0 +1,11 @@
+MESA WIRELESS - Business Account Statement
+Account: 3381-2290      Bill #: MW-551903
+Statement date: 15-Sep-2026
+
+Business plan, 4 lines              240.00
+Device installment (12 of 36)        33.33
+Regulatory & admin fees              12.67
+                                   -------
+Subtotal                            286.00
+Taxes & surcharges                   23.60
+TOTAL AMOUNT DUE                    309.60

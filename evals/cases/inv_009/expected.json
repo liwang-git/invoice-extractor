@@ -1,0 +1,20 @@
+{
+  "vendor": "Trailhead SaaS Inc.",
+  "invoice_number": "TH-88120",
+  "invoice_date": "2026-09-24",
+  "line_items": [
+    {
+      "description": "Annual license, 5 seats @ $180/seat",
+      "amount": 900.0
+    },
+    {
+      "description": "Onboarding & setup",
+      "amount": 250.0
+    }
+  ],
+  "tax": 0.0,
+  "total": 1150.0,
+  "category": "Software & SaaS",
+  "needs_review": false,
+  "review_reason": null
+}

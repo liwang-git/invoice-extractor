@@ -1,0 +1,24 @@
+{
+  "vendor": "Paper Trail Office Co.",
+  "invoice_number": "PT-77812",
+  "invoice_date": "2026-09-08",
+  "line_items": [
+    {
+      "description": "Printer paper, letter (ream)",
+      "amount": 64.9
+    },
+    {
+      "description": "Toner cartridge, black",
+      "amount": 189.98
+    },
+    {
+      "description": "Gel pens, 24-pack",
+      "amount": 18.5
+    }
+  ],
+  "tax": 22.55,
+  "total": 295.93,
+  "category": "Office Supplies",
+  "needs_review": false,
+  "review_reason": null
+}

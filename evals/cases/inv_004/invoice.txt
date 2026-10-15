@@ -1,0 +1,9 @@
+LONE STAR REGIONAL AIR - Receipt / Invoice
+Record locator: K7QF2M      Invoice: LSR-0098834
+Issued: Sep 10, 2026
+Passenger: WANG/LI
+
+AUS-DEN round trip, economy        $412.40
+Same-day change fee                 $75.00
+
+Total charged                      $487.40

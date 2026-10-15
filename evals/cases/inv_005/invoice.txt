@@ -1,0 +1,9 @@
+Capitol Coworking
+Membership Invoice
+Invoice: CC-2026-0915
+Date of issue: 2026-09-15
+
+- Dedicated desk membership (October)   450.00
+- Meeting room, 3 hrs @ 40.00            120.00
+
+Balance due: $570.00

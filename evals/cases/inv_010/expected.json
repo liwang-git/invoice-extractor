@@ -1,0 +1,20 @@
+{
+  "vendor": "Cedar Park Janitorial Services",
+  "invoice_number": "CPJ-7764",
+  "invoice_date": "2026-09-30",
+  "line_items": [
+    {
+      "description": "Weekly office cleaning, 4 visits @ $275",
+      "amount": 1100.0
+    },
+    {
+      "description": "Cleaning supplies",
+      "amount": 85.0
+    }
+  ],
+  "tax": 0.0,
+  "total": 1285.0,
+  "category": "Facilities & Utilities",
+  "needs_review": true,
+  "review_reason": "total_mismatch"
+}

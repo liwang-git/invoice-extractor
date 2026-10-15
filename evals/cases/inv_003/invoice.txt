@@ -1,0 +1,12 @@
+Paper Trail Office Co.
+Order Invoice  #PT-77812
+Invoice date: 09/08/2026
+
+Qty  Item                          Line total
+10   Printer paper, letter (ream)      64.90
+2    Toner cartridge, black           189.98
+1    Gel pens, 24-pack                 18.50
+
+Subtotal                              273.38
+Sales tax (8.25%)                      22.55
+Total                                 295.93

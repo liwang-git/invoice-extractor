@@ -1,0 +1,20 @@
+{
+  "vendor": "Granite Data Consulting LLC",
+  "invoice_number": "GDC-1042",
+  "invoice_date": "2026-09-18",
+  "line_items": [
+    {
+      "description": "Assessment - fixed fee",
+      "amount": 6000.0
+    },
+    {
+      "description": "Reimbursable travel expenses (see attached)",
+      "amount": 842.17
+    }
+  ],
+  "tax": 0.0,
+  "total": 6842.17,
+  "category": "Professional Services",
+  "needs_review": false,
+  "review_reason": null
+}

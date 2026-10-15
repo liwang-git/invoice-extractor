@@ -1,0 +1,20 @@
+{
+  "vendor": "Pixelworks Design Studio",
+  "invoice_number": "PWD-318",
+  "invoice_date": "2026-09-22",
+  "line_items": [
+    {
+      "description": "Logo refresh - concepts and final files",
+      "amount": 1200.0
+    },
+    {
+      "description": "Two rounds of revisions",
+      "amount": 300.0
+    }
+  ],
+  "tax": 0.0,
+  "total": null,
+  "category": "Professional Services",
+  "needs_review": true,
+  "review_reason": "missing_total"
+}
