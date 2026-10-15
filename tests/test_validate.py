@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from extractor.validate import EXTRACT_KEYS, check_schema, check_totals
+from extractor.validate import EXTRACT_KEYS, check_schema, check_totals, process
 
 CASES_DIR = Path(__file__).parent.parent / "evals" / "cases"
 CASE_DIRS = sorted(CASES_DIR.iterdir())
@@ -100,3 +100,72 @@ def test_check_schema_checks_inside_line_items():
 def test_check_totals_matches_expected(case_dir):
     expected = load_expected(case_dir)
     assert check_totals(expected) == expected["review_reason"]
+
+
+# --- process --------------------------------------------------------------
+
+def fake_model(*responses):
+    """Build a stand-in for the model that replays canned responses.
+
+    Returns the fake extract_fn and the list it records calls into, so a
+    test can assert how many times the "model" was asked. After the last
+    response it keeps repeating that one.
+    """
+    calls = []
+
+    def extract_fn(invoice_text):
+        calls.append(invoice_text)
+        return responses[min(len(calls), len(responses)) - 1]
+
+    return extract_fn, calls
+
+
+GOOD_OUTPUT = json.dumps(valid_extraction())
+
+
+def test_process_valid_first_time_does_not_retry():
+    extract_fn, calls = fake_model(GOOD_OUTPUT)
+    result = process("invoice text", extract_fn)
+    assert len(calls) == 1
+    assert result == {**valid_extraction(), "needs_review": False, "review_reason": None}
+
+
+def test_process_retries_once_then_succeeds():
+    extract_fn, calls = fake_model("Sure! Here is the JSON: {", GOOD_OUTPUT)
+    result = process("invoice text", extract_fn)
+    assert calls == ["invoice text", "invoice text"]  # exactly one retry
+    assert result == {**valid_extraction(), "needs_review": False, "review_reason": None}
+
+
+def test_process_flags_invalid_output_when_retry_also_fails():
+    broken = valid_extraction()
+    del broken["total"]
+    extract_fn, calls = fake_model(json.dumps(broken))
+    result = process("invoice text", extract_fn)
+    assert len(calls) == 2  # one try, one retry, then give up
+    assert result == {
+        "needs_review": True,
+        "review_reason": "invalid_output",
+        "problems": ["top level: missing key 'total'"],
+    }
+
+
+def test_process_does_not_retry_on_total_mismatch():
+    mismatched = valid_extraction()
+    mismatched["total"] = 999.0
+    extract_fn, calls = fake_model(json.dumps(mismatched))
+    result = process("invoice text", extract_fn)
+    assert len(calls) == 1  # valid schema: the numbers go to a human, not the model
+    assert result["needs_review"] is True
+    assert result["review_reason"] == "total_mismatch"
+
+
+@pytest.mark.parametrize("case_dir", CASE_DIRS, ids=lambda p: p.name)
+def test_process_with_perfect_model_matches_expected(case_dir):
+    # A "perfect" model returns exactly the expected extraction, so any
+    # difference here comes from our code, not the model.
+    expected = load_expected(case_dir)
+    extract_fn, _ = fake_model(json.dumps(extraction_only(expected)))
+    result = process((case_dir / "invoice.txt").read_text(), extract_fn)
+    assert result["needs_review"] == expected["needs_review"]
+    assert result["review_reason"] == expected["review_reason"]

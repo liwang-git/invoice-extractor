@@ -4,6 +4,7 @@ Design rule: code decides, the model only reads. Every accept, reject or
 flag decision in the pipeline is made here, in plain Python.
 """
 
+import json
 import math
 import re
 from datetime import datetime
@@ -119,3 +120,44 @@ def check_totals(data):
     if computed != _money(data["total"]):
         return "total_mismatch"
     return None
+
+
+def _parse_and_check(raw):
+    """Parse the model's raw text and check its schema.
+
+    Returns (data, problems). Unparseable text is just another schema
+    problem, so it gets the same single retry as a missing key would.
+    """
+    if not isinstance(raw, str):
+        return None, [f"model output: expected text, got {type(raw).__name__}"]
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError as err:
+        return None, [f"model output: not valid JSON ({err.msg})"]
+    return data, check_schema(data)
+
+
+def process(invoice_text, extract_fn):
+    """Run extraction with the code checks around it.
+
+    extract_fn takes the invoice text and returns the model's raw JSON text.
+    Passing it in (rather than calling a model here) lets tests use a fake.
+
+    - Schema failure: retry once. If the retry also fails, flag
+      "invalid_output" and return only the flags and the problems, so
+      unvalidated model output never travels further down the pipeline.
+    - Schema passes: never retry. Set needs_review / review_reason from
+      check_totals; a total mismatch goes to a human, not back to the model.
+    """
+    data, problems = _parse_and_check(extract_fn(invoice_text))
+    if problems:
+        data, problems = _parse_and_check(extract_fn(invoice_text))
+    if problems:
+        return {
+            "needs_review": True,
+            "review_reason": "invalid_output",
+            "problems": problems,
+        }
+
+    reason = check_totals(data)
+    return {**data, "needs_review": reason is not None, "review_reason": reason}
