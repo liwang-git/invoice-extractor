@@ -59,9 +59,14 @@ def check_schema(data):
 
     problems = _check_keys(data, EXTRACT_KEYS, "top level")
 
-    for key in ("vendor", "invoice_number"):
-        if key in data and not _is_text(data[key]):
-            problems.append(f"{key}: expected a non-empty string")
+    if "vendor" in data and not _is_text(data["vendor"]):
+        problems.append("vendor: expected a non-empty string")
+
+    # invoice_number may be null: "this invoice prints no number". An empty
+    # string is still rejected, so "none" has exactly one spelling.
+    if ("invoice_number" in data and data["invoice_number"] is not None
+            and not _is_text(data["invoice_number"])):
+        problems.append("invoice_number: expected a non-empty string or null")
 
     if "invoice_date" in data:
         date = data["invoice_date"]
@@ -129,6 +134,26 @@ def check_totals(data):
     return None
 
 
+def check_invoice_number(data):
+    """Return "missing_invoice_number" when the invoice prints no number.
+
+    Expects data that has already passed check_schema. A number-less invoice
+    is valid but can't be matched or de-duplicated later, so a human decides.
+    """
+    if data["invoice_number"] is None:
+        return "missing_invoice_number"
+    return None
+
+
+def check_review(data):
+    """The single review reason for schema-valid data, or None to accept.
+
+    Order matters because there is one reason per invoice: the money checks
+    come first, then the missing invoice number.
+    """
+    return check_totals(data) or check_invoice_number(data)
+
+
 def _parse_and_check(raw):
     """Parse the model's raw text and check its schema.
 
@@ -154,7 +179,7 @@ def process(invoice_text, extract_fn):
       "invalid_output" and return only the flags and the problems, so
       unvalidated model output never travels further down the pipeline.
     - Schema passes: never retry. Set needs_review / review_reason from
-      check_totals; a total mismatch goes to a human, not back to the model.
+      check_review; a total mismatch goes to a human, not back to the model.
     """
     data, problems = _parse_and_check(extract_fn(invoice_text))
     if problems:
@@ -166,5 +191,5 @@ def process(invoice_text, extract_fn):
             "problems": problems,
         }
 
-    reason = check_totals(data)
+    reason = check_review(data)
     return {**data, "needs_review": reason is not None, "review_reason": reason}

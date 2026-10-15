@@ -1,0 +1,20 @@
+{
+  "vendor": "Greenfield Landscaping",
+  "invoice_number": null,
+  "invoice_date": "2026-10-18",
+  "line_items": [
+    {
+      "description": "Lawn maintenance, October (4 visits)",
+      "amount": 320.0
+    },
+    {
+      "description": "Fall cleanup and leaf removal",
+      "amount": 180.0
+    }
+  ],
+  "tax": 0.0,
+  "total": 500.0,
+  "category": "Facilities & Utilities",
+  "needs_review": true,
+  "review_reason": "missing_invoice_number"
+}

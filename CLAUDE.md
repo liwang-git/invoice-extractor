@@ -38,7 +38,7 @@ Edit `scripts/build_case.py` and rerun it rather than hand-editing the generated
 ```json
 {
   "vendor": "string",
-  "invoice_number": "string",
+  "invoice_number": "string or null",
   "invoice_date": "YYYY-MM-DD",
   "line_items": [{"description": "string", "amount": 0.0}],
   "tax": 0.0,
@@ -50,7 +50,8 @@ Edit `scripts/build_case.py` and rerun it rather than hand-editing the generated
 ```
 
 - `total` is `null` when the invoice has no stated total.
-- `review_reason` is one of `null`, `"missing_total"`, `"total_mismatch"` or `"invalid_output"`.
+- `invoice_number` is `null` when the invoice prints no invoice number (an empty string is invalid).
+- `review_reason` is one of `null`, `"missing_total"`, `"total_mismatch"`, `"missing_invoice_number"` or `"invalid_output"`. With one reason per invoice, the totals checks win over a missing invoice number.
 - `CATEGORIES` is defined at the top of `scripts/build_case.py`: Software & SaaS, Professional Services, Office Supplies, Travel, Facilities & Utilities, Telecom.
 
 ## Rules

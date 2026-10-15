@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from extractor.validate import EXTRACT_KEYS, check_schema, check_totals, process
+from extractor.validate import EXTRACT_KEYS, check_review, check_schema, process
 
 CASES_DIR = Path(__file__).parent.parent / "evals" / "cases"
 CASE_DIRS = sorted(CASES_DIR.iterdir())
@@ -43,6 +43,12 @@ def test_check_schema_accepts_null_total():
     assert check_schema(data) == []
 
 
+def test_check_schema_accepts_null_invoice_number():
+    data = valid_extraction()
+    data["invoice_number"] = None
+    assert check_schema(data) == []
+
+
 def test_check_schema_rejects_non_object():
     assert check_schema(["not", "a", "dict"]) == [
         "top level: expected an object, got list"
@@ -62,7 +68,8 @@ def test_check_schema_reports_missing_and_unexpected_keys():
 # Each row breaks exactly one field, so a failure points at one rule.
 @pytest.mark.parametrize("field, bad_value, problem", [
     ("vendor", "", "vendor: expected a non-empty string"),
-    ("invoice_number", 20931, "invoice_number: expected a non-empty string"),
+    ("invoice_number", 20931, "invoice_number: expected a non-empty string or null"),
+    ("invoice_number", "", "invoice_number: expected a non-empty string or null"),
     ("invoice_date", "09/01/2026", "invoice_date: expected YYYY-MM-DD"),
     ("invoice_date", "2026-02-30", "invoice_date: 2026-02-30 is not a real date"),
     ("line_items", [], "line_items: expected a non-empty list"),
@@ -103,15 +110,30 @@ def test_check_schema_still_rejects_negative_tax():
     assert check_schema(data) == ["tax: expected a non-negative number"]
 
 
-# --- check_totals ---------------------------------------------------------
+# --- check_review (totals checks, then the invoice number) ---------------
 
 
 # parametrize turns one test function into one test per eval case, so a
 # failure report names the exact invoice that broke (e.g. [inv_010]).
 @pytest.mark.parametrize("case_dir", CASE_DIRS, ids=lambda p: p.name)
-def test_check_totals_matches_expected(case_dir):
+def test_check_review_matches_expected(case_dir):
     expected = load_expected(case_dir)
-    assert check_totals(expected) == expected["review_reason"]
+    assert check_review(expected) == expected["review_reason"]
+
+
+def test_money_problems_take_precedence_over_missing_number():
+    data = valid_extraction()
+    data["invoice_number"] = None
+    data["total"] = 999.0
+    assert check_review(data) == "total_mismatch"
+    data["total"] = None
+    assert check_review(data) == "missing_total"
+
+
+def test_missing_number_alone_is_flagged():
+    data = valid_extraction()
+    data["invoice_number"] = None
+    assert check_review(data) == "missing_invoice_number"
 
 
 # --- process --------------------------------------------------------------

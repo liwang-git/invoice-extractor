@@ -397,6 +397,26 @@ Corvus Strategy Partners - Confidential
      ("Project management fee", D("800.00"))],
     D("0"), D("12275.50"), "Professional Services")
 
+# No invoice number printed anywhere: invoice_number is null and the invoice
+# is flagged for a human, because it can't be matched or de-duplicated.
+case("inv_021", """
+Greenfield Landscaping
+123 Meadow Lane, Round Rock TX
+
+Date: 2026-10-18
+Bill to: Li Wang
+
+Lawn maintenance, October (4 visits)     320.00
+Fall cleanup and leaf removal            180.00
+
+Total due                                500.00
+Payment due on receipt. Thank you!
+""", "Greenfield Landscaping", None, "2026-10-18",
+    [("Lawn maintenance, October (4 visits)", D("320.00")),
+     ("Fall cleanup and leaf removal", D("180.00"))],
+    D("0"), D("500.00"), "Facilities & Utilities",
+    needs_review=True, reason="missing_invoice_number")
+
 out = "evals/cases"
 for cid, text, exp in cases:
     d = os.path.join(out, cid)
@@ -413,6 +433,8 @@ for cid, text, exp in cases:
         assert exp["review_reason"] == "missing_total", cid
     elif s != D(str(exp["total"])):
         assert exp["review_reason"] == "total_mismatch", (cid, s, exp["total"])
+    elif exp["invoice_number"] is None:
+        assert exp["review_reason"] == "missing_invoice_number", cid
     else:
         assert not exp["needs_review"], cid
 print(f"{len(cases)} cases written and checked")

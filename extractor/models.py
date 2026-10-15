@@ -28,12 +28,12 @@ CATEGORIES = ["Software & SaaS", "Professional Services", "Office Supplies",
 EXTRACT_PROMPT = """You extract fields from a plain-text invoice.
 Reply with ONLY a JSON object, no prose and no code fences, with exactly these keys:
   "vendor": string
-  "invoice_number": string
+  "invoice_number": string, or null if the invoice prints no invoice number
   "invoice_date": string, YYYY-MM-DD
   "line_items": list of {"description": string, "amount": number}
   "tax": number (0 if none is stated)
   "total": number, or null if the invoice states no total
-Copy amounts as written. Do not compute or correct anything."""
+Copy amounts as written. Do not compute or correct anything, and do not invent an invoice number."""
 
 CATEGORY_PROMPT = ("You assign an expense category to an invoice. Reply with "
                    "ONLY one of these exact strings, nothing else:\n"
@@ -77,7 +77,9 @@ def stub_extract(invoice_text, corrupt=0.0):
     if rng.random() < corrupt:
         data["vendor"] += " Ltd"
     if rng.random() < corrupt:
-        data["invoice_number"] += "X"
+        # A model that invents a number where there is none is a real failure.
+        data["invoice_number"] = ("X" if data["invoice_number"] is None
+                                  else data["invoice_number"] + "X")
     if rng.random() < corrupt:
         data["invoice_date"] = "2000-01-01"
     if rng.random() < corrupt:
